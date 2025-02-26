@@ -1,0 +1,31 @@
+# Binaries and temporaries
+/tmp/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+Makefile
+.env
+
+# Test output
+*.test
+*.out
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Generated files
+/static/css/output.css
+*_templ.go
+
+# Logs
+*.log
+
+# Editor configuration
+.vscode/
+.idea/
+
+# System files
+.DS_Store
