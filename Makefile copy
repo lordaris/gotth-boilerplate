@@ -1,0 +1,129 @@
+# Project variables
+APP_NAME = gotth-boilerplate
+MAIN_PATH = ./cmd/server
+BUILD_DIR = ./tmp
+BINARY_NAME = $(BUILD_DIR)/$(APP_NAME)
+
+# Database variables
+DB_USER ?= postgres
+DB_PASSWORD ?= postgres 
+DB_NAME ?= gotth_boilerplate
+DB_HOST ?= localhost
+DB_PORT ?= 5432
+DB_URL ?= postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable
+
+# Templ variables
+TEMPL_SRC_DIR = ./internal/templates
+TEMPL_FILES = $(shell find $(TEMPL_SRC_DIR) -name "*.templ")
+
+# Tailwind variables
+TAILWIND_INPUT = ./static/css/input.css
+TAILWIND_OUTPUT = ./static/css/output.css
+
+.PHONY: all build run clean dev dev-server dev-tailwind dev-all install-tools db-create db-migrate db-reset generate-templ test help
+
+# Default target
+all: build
+
+# Build the application
+build: generate-templ
+	go build -o $(BINARY_NAME) $(MAIN_PATH)
+
+# Run the compiled application
+run: build
+	$(BINARY_NAME)
+
+# Clean generated files
+clean:
+	rm -rf $(BUILD_DIR)
+	rm -f $(TAILWIND_OUTPUT)
+	find . -name '*_templ.go' -delete
+
+# Start server with Air (hot reload)
+dev-server:
+	air
+
+# Start Tailwind in development mode (watch)
+dev-tailwind:
+	npx @tailwindcss/cli -i $(TAILWIND_INPUT) -o $(TAILWIND_OUTPUT) --watch
+
+# Build Tailwind for production
+build-tailwindpostgres:
+	npx tailwindcss -i $(TAILWIND_INPUT) -o $(TAILWIND_OUTPUT) --minify
+
+# Start both services in parallel (using foreman if available, or an alternative solution)
+dev-all:
+	@if command -v foreman > /dev/null; then \
+		echo "web: air" > Procfile && \
+		echo "css: npx tailwindcss -i $(TAILWIND_INPUT) -o $(TAILWIND_OUTPUT) --watch" >> Procfile && \
+		foreman start; \
+	else \
+		echo "Starting services in separate terminals..."; \
+		$(MAKE) dev-server & $(MAKE) dev-tailwind; \
+	fi
+
+# Convenient alias for dev-all
+dev: dev-all
+
+# Install necessary tools
+install-tools:
+	go install github.com/air-verse/air@latest
+	go install github.com/a-h/templ/cmd/templ@latest
+	go get -u github.com/go-chi/chi/v5
+	npm install
+
+# Generate Go files from Templ templates
+generate-templ: $(TEMPL_FILES)
+	templ generate
+
+# Create database
+db-create:
+	@echo "Creating database $(DB_NAME)..."
+	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d postgres -c "CREATE DATABASE $(DB_NAME);" || echo "Database already exists"
+
+# Run migrations
+db-migrate:
+	@echo "Running migrations..."
+	@for file in ./migrations/*_*.sql; do \
+		echo "Applying $$file..."; \
+		PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) -f $$file; \
+	done
+
+# Reset database (drop + create + migrate)
+db-reset:
+	@echo "Resetting database $(DB_NAME)..."
+	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -c "DROP DATABASE IF EXISTS $(DB_NAME);" || true
+	@$(MAKE) db-create
+	@$(MAKE) db-migrate
+
+# Run tests
+test:
+	go test -v ./...
+
+# Help
+help:
+	@echo "Makefile Help for $(APP_NAME)"
+	@echo ""
+	@echo "Available commands:"
+	@echo "  make build              - Build the application"
+	@echo "  make run                - Run the compiled application"
+	@echo "  make clean              - Clean generated files"
+	@echo "  make dev                - Start the complete development environment"
+	@echo "  make dev-server         - Start only the server with Air (hot reload)"
+	@echo "  make dev-tailwind       - Start only the Tailwind compiler (watch mode)"
+	@echo "  make build-tailwind     - Build Tailwind for production (minified)"
+	@echo "  make install-tools      - Install necessary tools"
+	@echo "  make generate-templ     - Generate Go files from Templ templates"
+	@echo "  make db-create          - Create the database"
+	@echo "  make db-migrate         - Run migrations"
+	@echo "  make db-reset           - Reset the database (drop+create+migrate)"
+	@echo "  make test               - Run tests"
+	@echo ""
+	@echo "Environment variables you can configure:"
+	@echo "  DB_USER=user            - PostgreSQL user (default: postgres)"
+	@echo "  DB_PASSWORD=password    - PostgreSQL password (default: postgres)"
+	@echo "  DB_NAME=name            - Database name (default: github.com/lordaris/gotth-boilerplate)"
+	@echo "  DB_HOST=host            - PostgreSQL host (default: localhost)"
+	@echo "  DB_PORT=port            - PostgreSQL port (default: 5432)"
+	@echo ""
+	@echo "Example: make db-reset DB_USER=myuser DB_PASSWORD=mypassword"
