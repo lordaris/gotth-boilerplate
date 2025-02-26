@@ -1,0 +1,41 @@
+package templates
+
+import (
+"fmt"
+"github.com/lordaris/gotth-boilerplate/internal/models"
+)
+
+templ EditUserForm(user models.User) {
+	@Layout(fmt.Sprintf("Edit User: %s", user.Name)) {
+		<div class="bg-white p-6 rounded-lg shadow-md">
+			<h2 class="text-xl font-bold text-gray-800 mb-4">Edit User</h2>
+			<form hx-put={ fmt.Sprintf("/api/users/%d", user.ID) }
+			      hx-target="#users-container"
+			      hx-swap="innerHTML">
+				<div>
+					<label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+					<input type="text" id="name" name="name" value={ user.Name } required
+					       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
+				</div>
+				<div>
+					<label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+					<input type="email" id="email" name="email" value={ user.Email } required
+					       class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" />
+				</div>
+				<div class="flex justify-between pt-4">
+					<button type="button" 
+					        hx-get="/api/users"
+					        hx-target="#users-container"
+					        hx-swap="innerHTML"
+					        class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded transition">
+						Cancel
+					</button>
+					<button type="submit"
+					        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition">
+						Update User
+					</button>
+				</div>
+			</form>
+		</div>
+	}
+}

@@ -1,0 +1,58 @@
+package templates
+
+import (
+"fmt"
+"github.com/lordaris/gotth-boilerplate/internal/models"
+)
+
+templ UserDetails(user models.User) {
+	@Layout("User Details") {
+		<div class="bg-white p-5 rounded-md shadow border border-gray-200">
+			<div class="flex justify-between items-start">
+				<div>
+					<h3 class="text-xl font-bold text-gray-800">{ user.Name }</h3>
+					<p class="text-gray-600">{ user.Email }</p>
+				</div>
+				<span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Active</span>
+			</div>
+			
+			<div class="mt-4">
+				<h4 class="text-sm font-medium text-gray-700 mb-2">User Information</h4>
+				<div class="grid grid-cols-2 gap-2 text-sm">
+					<div class="text-gray-500">ID</div>
+					<div class="text-gray-900">{ fmt.Sprint(user.ID) }</div>
+					
+					<div class="text-gray-500">Joined</div>
+					<div class="text-gray-900">February 20, 2025</div>
+					
+					<div class="text-gray-500">Role</div>
+					<div class="text-gray-900">Standard User</div>
+				</div>
+			</div>
+			
+			<div class="mt-6 flex justify-end space-x-3">
+				<button class="text-gray-500 hover:text-gray-700"
+				        hx-get="/api/users"
+				        hx-target="#users-container" 
+				        hx-swap="innerHTML">
+					Back to list
+				</button>
+				
+				<button class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded-md text-sm transition"
+				        hx-get={ fmt.Sprintf("/api/users/%d/edit", user.ID) }
+				        hx-target="#users-container"
+				        hx-swap="innerHTML">
+					Edit User
+				</button>
+				
+				<button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm transition"
+				        hx-delete={ fmt.Sprintf("/api/users/%d", user.ID) }
+				        hx-confirm={ fmt.Sprintf("Are you sure you want to delete %s?", user.Name) }
+				        hx-target="#users-container"
+				        hx-swap="innerHTML">
+					Delete User
+				</button>
+			</div>
+		</div>
+	}
+}
