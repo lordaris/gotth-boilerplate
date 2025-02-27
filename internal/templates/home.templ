@@ -6,7 +6,10 @@ templ Home(name string) {
 @Layout(fmt.Sprintf("Welcome, %s", name)) {
 <div class="bg-white p-6 rounded-lg shadow-md">
   <h1 class="text-2xl font-bold text-gray-800 mb-4">Hello, { name }!</h1>
-  <p class="text-gray-600 mb-4">Welcome! I'll show you some basic CRUD operations and some interaction made with the use of Golang, Templ, HTMX, sqlx and chi</p>
+  <p class="text-gray-600 mb-4">
+    Welcome! I'll show you some basic CRUD operations and some interaction made with the use
+    of Golang, Templ, HTMX, sqlx and chi
+  </p>
   <p>Just play with the form</p>
   <div class="mt-6">
     <h2 class="text-xl font-semibold text-gray-700 mb-2">Add a User</h2>
@@ -25,7 +28,7 @@ templ Home(name string) {
     </button>
     <div id="users-container" class="mt-4">
       <div id="users-list" class="p-4 bg-gray-50 rounded">
-        <p class="text-gray-500 italic">Click the button to load users...</p>
+        <p class="text-gray-500 italic">Click the button to load users</p>
       </div>
     </div>
   </div>

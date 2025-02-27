@@ -26,7 +26,7 @@ func SetupRouter(h *handlers.Handlers) *chi.Mux {
 	r.Get("/", h.HomeHandler())
 	r.Get("/api/users", h.GetUsersHandler())
 	r.Post("/api/users", h.CreateUserHandler())
-	r.Get("/api/users/{id}", h.FixedGetUserDetailHandler())
+	r.Get("/api/users/{id}", h.GetUserDetailHandler())
 	r.Get("/api/users/{id}/edit", h.EditUserHandler())
 	r.Put("/api/users/{id}", h.UpdateUserHandler())
 	r.Delete("/api/users/{id}", h.DeleteUserHandler())

@@ -33,6 +33,7 @@ func (h *Handlers) HomeHandler() http.HandlerFunc {
 
 func (h *Handlers) CreateUserHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		users := []models.User{}
 		err := r.ParseForm()
 		if err != nil {
 			http.Error(w, "Invalid input", http.StatusBadRequest)
@@ -53,7 +54,14 @@ func (h *Handlers) CreateUserHandler() http.HandlerFunc {
 			return
 		}
 
+		err = h.App.DB.Select(&users, "SELECT id, name, email FROM users")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		w.WriteHeader(http.StatusCreated)
+		templates.UsersList(users).Render(r.Context(), w)
 	}
 }
 
@@ -71,7 +79,7 @@ func (h *Handlers) GetUsersHandler() http.HandlerFunc {
 	}
 }
 
-func (h *Handlers) FixedGetUserDetailHandler() http.HandlerFunc {
+func (h *Handlers) GetUserDetailHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := chi.URLParam(r, "id")
 		id, err := strconv.Atoi(idStr)
@@ -130,16 +138,14 @@ func (h *Handlers) UpdateUserHandler() http.HandlerFunc {
 			http.Error(w, "Error updating user", http.StatusInternalServerError)
 			return
 		}
-
-		var user models.User
-		err = h.App.DB.QueryRow("SELECT id, name, email FROM users WHERE id = $1", id).
-			Scan(&user.ID, &user.Name, &user.Email)
+		users := []models.User{}
+		err = h.App.DB.Select(&users, "SELECT id, name, email FROM users")
 		if err != nil {
-			http.Error(w, "User not found", http.StatusNotFound)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		templates.UsersList([]models.User{user}).Render(r.Context(), w)
+		templates.UsersList(users).Render(r.Context(), w)
 	}
 }
 
@@ -154,5 +160,14 @@ func (h *Handlers) DeleteUserHandler() http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
+
+		users := []models.User{}
+		err = h.App.DB.Select(&users, "SELECT id, name, email FROM users")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		templates.UsersList(users).Render(r.Context(), w)
 	}
 }
